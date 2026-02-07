@@ -1,0 +1,51 @@
+{
+  "name": "@dishantlangayan/sc-cli-core",
+  "version": "0.0.1",
+  "description": "Base library for the Solace Cloud CLI and plugins",
+  "license": "Apache-2.0",
+  "author": "Dishant Langayan",
+  "type": "module",
+  "exports": {
+    "./ScCommand.js": "./lib/ScCommand.js",
+    "./ScConnection.js": "./lib/util/ScConnection.js",
+    ".": {
+      "default": "./lib/exported.js",
+      "types": "./lib/exported.d.ts"
+    }
+  },
+  "files": [
+    "./lib",
+    "./lib/**/*.ts"
+  ],
+  "scripts": {
+    "build": "shx rm -rf lib && tsc -b",
+    "lint": "eslint",
+    "posttest": "npm run lint",
+    "test": "NODE_OPTIONS=--loader=ts-node/esm mocha --require ts-node/register --extensions ts --node-env=test \"test/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@eslint/compat": "^1",
+    "@oclif/prettier-config": "^0.2.1",
+    "@oclif/test": "^4.1.16",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.0.3",
+    "@types/sinon": "^21.0.0",
+    "chai": "^6.2.2",
+    "eslint": "^9",
+    "eslint-config-oclif": "^6.0.137",
+    "eslint-config-prettier": "^10",
+    "jiti": "^2.6.1",
+    "mocha": "^11.3.0",
+    "oclif": "^4.22.73",
+    "shx": "^0.4.0",
+    "sinon": "^21.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@oclif/core": "^4.8.0",
+    "axios": "^1.13.2",
+    "table": "^6.9.0"
+  }
+}
