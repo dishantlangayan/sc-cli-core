@@ -2,7 +2,7 @@ import {Command, Flags, Interfaces} from '@oclif/core'
 
 import {DefaultBaseUrl, EnvironmentVariable, envVars} from './config/env-vars.js'
 
-export type Flags<T extends typeof Command> = Interfaces.InferredFlags<T['flags'] & (typeof ScCommand)['baseFlags']>
+export type Flags<T extends typeof Command> = Interfaces.InferredFlags<(typeof ScCommand)['baseFlags'] & T['flags']>
 export type Args<T extends typeof Command> = Interfaces.InferredArgs<T['args']>
 
 /**
