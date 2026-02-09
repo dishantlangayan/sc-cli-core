@@ -6,6 +6,8 @@ import {DefaultBaseUrl, EnvironmentVariable, envVars} from '../../src/config/env
 import {ScConnection} from '../../src/util/sc-connection.js'
 import {expect, sandbox} from '../setup.js'
 
+// Force ts-node recompile
+
 // Define type for the axios instance stub
 interface AxiosInstanceStub {
   delete: sinon.SinonStub;
@@ -22,10 +24,10 @@ interface AxiosInstanceStub {
 
 describe('ScConnection', () => {
   // Stubs and mocks
-  let axiosCreateStub: sinon.SinonStub
-  let axiosInstanceStub: AxiosInstanceStub
-  let envVarsGetStringStub: sinon.SinonStub
-  let consoleErrorStub: sinon.SinonStub
+  let axiosCreateStub!: sinon.SinonStub
+  let axiosInstanceStub!: AxiosInstanceStub
+  let envVarsGetStringStub!: sinon.SinonStub
+  let consoleErrorStub!: sinon.SinonStub
 
   beforeEach(() => {
     // Create a stub for axios.create
@@ -149,7 +151,7 @@ describe('ScConnection', () => {
   })
 
   describe('HTTP methods', () => {
-    let connection: ScConnection
+    let connection!: ScConnection
     const testUrl = '/test'
     const testData = {key: 'value'}
     const testConfig = {headers: {'X-Test': 'test'}}
