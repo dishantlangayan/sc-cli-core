@@ -3,7 +3,7 @@
 
 Core library for the Solace Cloud CLI
 
-[![Version](https://img.shields.io/npm/v/@dishantlangayan/solace-cloud-cli.svg)](https://npmjs.org/package/@dishantlangayan/sc-cli-core)
+[![Version](https://img.shields.io/npm/v/@dishantlangayan/sc-cli-core.svg)](https://npmjs.org/package/@dishantlangayan/sc-cli-core)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](https://opensource.org/license/apache-2-0)
 
 # Description
