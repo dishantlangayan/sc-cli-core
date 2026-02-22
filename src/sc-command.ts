@@ -58,7 +58,7 @@ export abstract class ScCommand<T extends typeof Command> extends Command {
     // Check if Access Token is set
     const value = envVars.getString(EnvironmentVariable.SC_ACCESS_TOKEN)
     if (!value) {
-      throw new Error(
+      this.error(
         `Environment variable ${EnvironmentVariable.SC_ACCESS_TOKEN} is not set and required for any API operations.`,
       )
     }
