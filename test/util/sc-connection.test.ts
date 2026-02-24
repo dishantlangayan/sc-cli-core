@@ -120,6 +120,44 @@ describe('ScConnection', () => {
       expect(axiosCreateStub.firstCall.args[0].baseURL).to.equal(`${DefaultBaseUrl}/api/${customApiVersion}`)
     })
 
+    it('should create an instance with semp=true', () => {
+      // Arrange
+      const customBaseUrl = 'https://api.example.com'
+      const customToken = 'test-token'
+      envVarsGetStringStub.withArgs(EnvironmentVariable.SEMP_API_VERSION, 'v2').returns('v2')
+
+      // Act
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const connection = new ScConnection(customBaseUrl, customToken, 10_000, true)
+
+      // Assert
+      expect(axiosCreateStub.calledOnce).to.be.true
+      expect(axiosCreateStub.firstCall.args[0]).to.deep.include({
+        baseURL: `${customBaseUrl}/SEMP/v2`,
+        headers: {
+          Authorization: `Basic ${customToken}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 10_000,
+      })
+    })
+
+    it('should use custom SEMP API version if provided in environment variables', () => {
+      // Arrange
+      const customSempApiVersion = 'v3'
+      const customBaseUrl = 'https://api.example.com'
+      const customToken = 'semp-token'
+      envVarsGetStringStub.withArgs(EnvironmentVariable.SEMP_API_VERSION, 'v2').returns(customSempApiVersion)
+
+      // Act
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const connection = new ScConnection(customBaseUrl, customToken, 10_000, true)
+
+      // Assert
+      expect(axiosCreateStub.firstCall.args[0].baseURL).to.equal(`${customBaseUrl}/SEMP/${customSempApiVersion}`)
+      expect(axiosCreateStub.firstCall.args[0].headers.Authorization).to.equal(`Basic ${customToken}`)
+    })
+
     it('should correctly join paths with and without trailing/leading slashes', () => {
       // Arrange
       const baseUrls = ['https://api.example.com', 'https://api.example.com/']

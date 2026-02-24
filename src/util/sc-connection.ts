@@ -10,13 +10,17 @@ export class ScConnection {
     baseURL: string = envVars.getString(EnvironmentVariable.SC_BASE_URL, DefaultBaseUrl),
     accessToken: string = envVars.getString(EnvironmentVariable.SC_ACCESS_TOKEN, ''),
     timeout: number = 10_000,
+    semp: boolean = false,
   ) {
     const apiVersion = envVars.getString(EnvironmentVariable.SC_API_VERSION, 'v2')
-    this.endpointUrl = this.joinPaths(baseURL, `/api/${apiVersion}`)
+    const sempApiVersion = envVars.getString(EnvironmentVariable.SEMP_API_VERSION, 'v2')
+    this.endpointUrl = semp
+      ? this.joinPaths(baseURL, `/SEMP/${sempApiVersion}`)
+      : this.joinPaths(baseURL, `/api/${apiVersion}`)
     this.axiosInstance = axios.create({
       baseURL: this.endpointUrl,
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: semp ? `Basic ${accessToken}` : `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       timeout,
