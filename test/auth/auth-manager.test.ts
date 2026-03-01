@@ -1,4 +1,5 @@
-import {beforeEach, describe, it} from 'mocha'
+import keytar from 'keytar'
+import {afterEach, beforeEach, describe, it} from 'mocha'
 
 import {BrokerAuthManager} from '../../src/auth/auth-manager.js'
 import {BrokerAuthError, BrokerAuthErrorCode} from '../../src/auth/auth-types.js'
@@ -7,7 +8,8 @@ import {createMockBasicBroker, createMockOAuthBroker} from './auth-helpers.js'
 
 describe('BrokerAuthManager', () => {
   let manager: BrokerAuthManager
-  const testPassword = 'test-password-123'
+  const TEST_KEY_NAME = 'sc-cli-test'
+  const TEST_SERVICE_NAME = 'test-local'
 
   beforeEach(() => {
     // Reset singleton
@@ -15,6 +17,15 @@ describe('BrokerAuthManager', () => {
     ;(BrokerAuthManager as any).instance = null
 
     manager = BrokerAuthManager.getInstance()
+  })
+
+  afterEach(async () => {
+    // Clean up test keychain entry
+    try {
+      await keytar.deletePassword(TEST_KEY_NAME, TEST_SERVICE_NAME)
+    } catch {
+      // Ignore errors if entry doesn't exist
+    }
   })
 
   describe('getInstance', () => {
@@ -28,7 +39,7 @@ describe('BrokerAuthManager', () => {
 
   describe('validation', () => {
     beforeEach(async () => {
-      await manager.initialize(testPassword)
+      await manager.initialize()
     })
 
     it('should validate broker name', async () => {
@@ -74,10 +85,6 @@ describe('BrokerAuthManager', () => {
 
       await expect(manager.listBrokers()).to.be.rejectedWith(BrokerAuthError).and.eventually.have.property('code', BrokerAuthErrorCode.NOT_INITIALIZED)
     })
-
-    it('should reject empty password', async () => {
-      await expect(manager.initialize('')).to.be.rejectedWith(BrokerAuthError)
-    })
   })
 
   describe('type safety', () => {
@@ -96,7 +103,7 @@ describe('BrokerAuthManager', () => {
 
   describe('createConnection', () => {
     beforeEach(async () => {
-      await manager.initialize(testPassword)
+      await manager.initialize()
     })
 
     it('should throw error for non-existent broker', async () => {

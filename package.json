@@ -54,6 +54,8 @@
   "dependencies": {
     "@oclif/core": "^4.8.0",
     "axios": "^1.13.2",
+    "keytar": "^7.9.0",
+    "node-machine-id": "^1.1.12",
     "table": "^6.9.0"
   }
 }

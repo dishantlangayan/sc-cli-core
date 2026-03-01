@@ -1,6 +1,10 @@
+import keytar from 'keytar'
+import pkg from 'node-machine-id'
+import {randomBytes} from 'node:crypto'
 import {mkdir, readFile, rename, unlink, writeFile} from 'node:fs/promises'
 import {homedir} from 'node:os'
 import {join} from 'node:path'
+const {machineIdSync} = pkg
 
 import {ScConnection} from '../util/sc-connection.js'
 import {BrokerAuthEncryption} from './auth-encryption.js'
@@ -13,6 +17,9 @@ import {
   type EncryptedData,
 } from './auth-types.js'
 
+const SERVICE_NAME = 'local'
+const KEY_NAME = 'sc-cli'
+
 /**
  * Manager for broker authentication storage
  * Handles encrypted storage of broker credentials
@@ -21,8 +28,9 @@ export class BrokerAuthManager {
   private static instance: BrokerAuthManager | null = null
   private readonly configDir: string
   private readonly configFile: string
-  private currentPassword: null | string = null
   private encryptionKey: Buffer | null = null
+  private machineId: null | string = null
+  private masterKey: null | string = null
   private storage: BrokerAuthStorage | null = null
 
   private constructor() {
@@ -133,24 +141,34 @@ export class BrokerAuthManager {
   }
 
   /**
-   * Initialize the auth manager with encryption key
-   * @param password - Password to derive encryption key
+   * Initialize the auth manager with encryption key derived from OS keychain and machine ID
    */
-  public async initialize(password: string): Promise<void> {
+  public async initialize(): Promise<void> {
     try {
-      // Store password for re-encryption
-      this.currentPassword = password
+      // Get machine ID
+      this.machineId = machineIdSync()
+
+      // Get or create master key from OS keychain
+      this.masterKey = await keytar.getPassword(KEY_NAME, SERVICE_NAME)
+      if (!this.masterKey) {
+        // Generate new master key and store in OS keychain
+        this.masterKey = randomBytes(32).toString('base64')
+        await keytar.setPassword(KEY_NAME, SERVICE_NAME, this.masterKey)
+      }
+
+      // Combine master key with machine ID for encryption
+      const combinedKey = `${this.masterKey}:${this.machineId}`
 
       // Try to load existing storage
       const fileExists = await this.fileExists()
 
       if (fileExists) {
         // Load existing file and derive key from stored salt
-        await this.loadStorage(password)
+        await this.loadStorage(combinedKey)
       } else {
         // Create new storage with new salt
         const salt = BrokerAuthEncryption.generateSalt()
-        this.encryptionKey = await BrokerAuthEncryption.deriveKey(password, salt)
+        this.encryptionKey = await BrokerAuthEncryption.deriveKey(combinedKey, salt)
         this.storage = {
           brokers: [],
           version: '1.0.0',
@@ -254,16 +272,16 @@ export class BrokerAuthManager {
 
   /**
    * Load storage from encrypted file
-   * @param password - Password to decrypt
+   * @param combinedKey - Combined master key and machine ID for decryption
    */
-  private async loadStorage(password: string): Promise<void> {
+  private async loadStorage(combinedKey: string): Promise<void> {
     try {
       const fileContent = await readFile(this.configFile, 'utf8')
       const encryptedData = JSON.parse(fileContent) as EncryptedData
 
-      // Derive key from password and stored salt
+      // Derive key from combined key and stored salt
       const salt = Buffer.from(encryptedData.salt, 'base64')
-      this.encryptionKey = await BrokerAuthEncryption.deriveKey(password, salt)
+      this.encryptionKey = await BrokerAuthEncryption.deriveKey(combinedKey, salt)
 
       // Decrypt storage
       this.storage = await BrokerAuthEncryption.decrypt(encryptedData, this.encryptionKey)
@@ -281,8 +299,8 @@ export class BrokerAuthManager {
    */
   private async saveStorage(): Promise<void> {
     try {
-      if (!this.currentPassword) {
-        throw new BrokerAuthError('Password not set', BrokerAuthErrorCode.NOT_INITIALIZED)
+      if (!this.masterKey || !this.machineId) {
+        throw new BrokerAuthError('Auth manager not initialized', BrokerAuthErrorCode.NOT_INITIALIZED)
       }
 
       // Ensure directory exists
@@ -292,8 +310,9 @@ export class BrokerAuthManager {
       const encrypted = await BrokerAuthEncryption.encrypt(this.storage!, this.encryptionKey!)
 
       // Re-derive key with new salt for next save
+      const combinedKey = `${this.masterKey}:${this.machineId}`
       const newSalt = Buffer.from(encrypted.salt, 'base64')
-      this.encryptionKey = await BrokerAuthEncryption.deriveKey(this.currentPassword, newSalt)
+      this.encryptionKey = await BrokerAuthEncryption.deriveKey(combinedKey, newSalt)
 
       // Write to temp file first (atomic write)
       const jsonData = JSON.stringify(encrypted, null, 2)
