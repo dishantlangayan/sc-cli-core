@@ -120,7 +120,7 @@ describe('ScConnection', () => {
       expect(axiosCreateStub.firstCall.args[0].baseURL).to.equal(`${DefaultBaseUrl}/api/${customApiVersion}`)
     })
 
-    it('should create an instance with semp=true', () => {
+    it('should create an instance with basic=true', () => {
       // Arrange
       const customBaseUrl = 'https://api.example.com'
       const customToken = 'test-token'
