@@ -1,31 +1,24 @@
-import keytar from 'keytar'
-import {afterEach, beforeEach, describe, it} from 'mocha'
+import {beforeEach, describe, it} from 'mocha'
 
 import {BrokerAuthManager} from '../../src/auth/auth-manager.js'
 import {BrokerAuthError, BrokerAuthErrorCode} from '../../src/auth/auth-types.js'
 import {expect} from '../setup.js'
 import {createMockBasicBroker, createMockOAuthBroker} from './auth-helpers.js'
+import {MockKeychainService} from './mock-keychain.js'
 
 describe('BrokerAuthManager', () => {
   let manager: BrokerAuthManager
-  const TEST_KEY_NAME = 'sc-cli-test'
-  const TEST_SERVICE_NAME = 'test-local'
+  let mockKeychainService: MockKeychainService
 
   beforeEach(() => {
+    // Create mock keychain service
+    mockKeychainService = new MockKeychainService()
+
     // Reset singleton
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(BrokerAuthManager as any).instance = null
 
-    manager = BrokerAuthManager.getInstance()
-  })
-
-  afterEach(async () => {
-    // Clean up test keychain entry
-    try {
-      await keytar.deletePassword(TEST_KEY_NAME, TEST_SERVICE_NAME)
-    } catch {
-      // Ignore errors if entry doesn't exist
-    }
+    manager = BrokerAuthManager.getInstance(mockKeychainService)
   })
 
   describe('getInstance', () => {

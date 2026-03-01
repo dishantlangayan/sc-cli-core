@@ -1,10 +1,6 @@
-import keytar from 'keytar'
-import pkg from 'node-machine-id'
-import {randomBytes} from 'node:crypto'
 import {mkdir, readFile, rename, unlink, writeFile} from 'node:fs/promises'
 import {homedir} from 'node:os'
 import {join} from 'node:path'
-const {machineIdSync} = pkg
 
 import {ScConnection} from '../util/sc-connection.js'
 import {BrokerAuthEncryption} from './auth-encryption.js'
@@ -16,6 +12,7 @@ import {
   type BrokerAuthStorage,
   type EncryptedData,
 } from './auth-types.js'
+import {KeychainService} from './keychain.js'
 
 const SERVICE_NAME = 'local'
 const KEY_NAME = 'sc-cli'
@@ -29,22 +26,25 @@ export class BrokerAuthManager {
   private readonly configDir: string
   private readonly configFile: string
   private encryptionKey: Buffer | null = null
+  private readonly keychainService: KeychainService
   private machineId: null | string = null
   private masterKey: null | string = null
   private storage: BrokerAuthStorage | null = null
 
-  private constructor() {
+  private constructor(keychainService?: KeychainService) {
     const homeDirectory = homedir()
     this.configDir = join(homeDirectory, '.sc')
     this.configFile = join(this.configDir, 'brokers.json')
+    this.keychainService = keychainService ?? new KeychainService()
   }
 
   /**
    * Get singleton instance
+   * @param keychainService - Optional keychain service for testing
    */
-  public static getInstance(): BrokerAuthManager {
+  public static getInstance(keychainService?: KeychainService): BrokerAuthManager {
     if (!BrokerAuthManager.instance) {
-      BrokerAuthManager.instance = new BrokerAuthManager()
+      BrokerAuthManager.instance = new BrokerAuthManager(keychainService)
     }
 
     return BrokerAuthManager.instance
@@ -146,14 +146,14 @@ export class BrokerAuthManager {
   public async initialize(): Promise<void> {
     try {
       // Get machine ID
-      this.machineId = machineIdSync()
+      this.machineId = this.keychainService.getMachineId()
 
       // Get or create master key from OS keychain
-      this.masterKey = await keytar.getPassword(KEY_NAME, SERVICE_NAME)
+      this.masterKey = await this.keychainService.getPassword(KEY_NAME, SERVICE_NAME)
       if (!this.masterKey) {
         // Generate new master key and store in OS keychain
-        this.masterKey = randomBytes(32).toString('base64')
-        await keytar.setPassword(KEY_NAME, SERVICE_NAME, this.masterKey)
+        this.masterKey = this.keychainService.generateMasterKey()
+        await this.keychainService.setPassword(KEY_NAME, SERVICE_NAME, this.masterKey)
       }
 
       // Combine master key with machine ID for encryption
