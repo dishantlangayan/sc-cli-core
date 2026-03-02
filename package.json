@@ -1,6 +1,6 @@
 {
   "name": "@dishantlangayan/sc-cli-core",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Base library for the Solace Cloud CLI and plugins",
   "license": "Apache-2.0",
   "author": "Dishant Langayan",
