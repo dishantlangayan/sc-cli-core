@@ -20,8 +20,11 @@ The ScCommand abstract class extends [@oclif/core's Command class](https://githu
 ## ScConnection Class
 The ScConnection class provide abstraction functions for Solace Cloud API REST calls. It handles the access token and base URL for each REST call, avoiding the need to set these on each Command.
 
+## OrgManager
+The OrgManager class provides utility functions to store and retrieve Solace Cloud authentication information from user's home directory: `~/.sc/` or `%USERPROFILE%\sc\`. The implementation uses AES-256-GCM for authenticated encryption and provides machine-bound encryption that combines OS-level security (keychain) with machine-specific identifiers, making credentials non-transferable between machines.
+
 ## BrokerAuthManager
-The BrokerAuthManager class provides utility functions to store and retrieve broker SEMP management authentication information from user's home directory: `~/.sc/` or `%USERPROFILE%\sc\`. The implementation uses AES-256-GCM for authenticated encryption and provides machine-bound encryption that combines OS-level security (keychain) with machine-specific identifiers, making credentials non-transferable between machines.
+The BrokerAuthManager class provides utility functions to store and retrieve broker SEMP management authentication information similar to the `OrgManager` class. It supports Basic and OAuth authentication schemes.
 
 # Contributing
 Contributions are encouraged! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
