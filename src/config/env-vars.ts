@@ -2,7 +2,6 @@ export enum EnvironmentVariable {
   'SC_ACCESS_TOKEN' = 'SC_ACCESS_TOKEN',
   'SC_API_VERSION' = 'SC_API_VERSION',
   'SC_BASE_URL' = 'SC_BASE_URL',
-  'SEMP_API_VERSION' = 'SEMP_API_VERSION',
 }
 
 export const DefaultBaseUrl = 'https://api.solace.cloud'
