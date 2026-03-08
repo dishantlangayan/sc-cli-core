@@ -67,6 +67,11 @@ export class OrgManager {
       }
     }
 
+    // If this org is being set as default, unset any existing default
+    if (org.isDefault) {
+      this.unsetAllDefaults()
+    }
+
     // Add organization
     this.storage!.orgs.push(org)
 
@@ -92,6 +97,17 @@ export class OrgManager {
     this.ensureInitialized()
 
     return [...this.storage!.orgs]
+  }
+
+  /**
+   * Get the default organization
+   * @returns Default organization or null if no default is set
+   */
+  public async getDefaultOrg(): Promise<null | OrgConfig> {
+    this.ensureInitialized()
+
+    const org = this.storage!.orgs.find((o) => o.isDefault === true)
+    return org ?? null
   }
 
   /**
@@ -190,6 +206,28 @@ export class OrgManager {
   }
 
   /**
+   * Set an organization as the default
+   * @param identifier - Organization ID or alias to set as default
+   */
+  public async setDefaultOrg(identifier: string): Promise<void> {
+    this.ensureInitialized()
+
+    const index = this.storage!.orgs.findIndex((o) => o.orgId === identifier || o.alias === identifier)
+    if (index === -1) {
+      throw new OrgError(`Organization '${identifier}' not found`, OrgErrorCode.ORG_NOT_FOUND)
+    }
+
+    // Unset all existing defaults
+    this.unsetAllDefaults()
+
+    // Set this org as default
+    this.storage!.orgs[index].isDefault = true
+
+    // Save to file
+    await this.saveStorage()
+  }
+
+  /**
    * Update existing organization configuration
    * @param identifier - Organization ID or alias to update
    * @param updates - Partial updates to apply
@@ -210,6 +248,11 @@ export class OrgManager {
       if (conflictingOrg) {
         throw new OrgError(`Organization with alias '${updates.alias}' already exists`, OrgErrorCode.ORG_ALREADY_EXISTS)
       }
+    }
+
+    // If setting this org as default, unset any existing default
+    if (updates.isDefault === true) {
+      this.unsetAllDefaults()
     }
 
     // Merge updates
@@ -324,6 +367,15 @@ export class OrgManager {
       }
 
       throw new OrgError('Failed to save organization storage', OrgErrorCode.FILE_WRITE_ERROR, error as Error)
+    }
+  }
+
+  /**
+   * Unset the default flag on all organizations
+   */
+  private unsetAllDefaults(): void {
+    for (const org of this.storage!.orgs) {
+      org.isDefault = false
     }
   }
 

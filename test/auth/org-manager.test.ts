@@ -461,4 +461,151 @@ describe('OrgManager', () => {
       expect(retrieved).to.deep.equal(org)
     })
   })
+
+  describe('default organization', () => {
+    beforeEach(async () => {
+      await manager.initialize()
+    })
+
+    it('should return null when no default is set', async () => {
+      const defaultOrg = await manager.getDefaultOrg()
+
+      expect(defaultOrg).to.be.null
+    })
+
+    it('should add organization with isDefault=true', async () => {
+      const org = createMockOrg('org-123', 'my-org')
+      org.isDefault = true
+
+      await manager.addOrg(org)
+
+      const defaultOrg = await manager.getDefaultOrg()
+      expect(defaultOrg).to.not.be.null
+      expect(defaultOrg?.orgId).to.equal('org-123')
+      expect(defaultOrg?.isDefault).to.be.true
+    })
+
+    it('should only allow one default organization when adding', async () => {
+      const org1 = createMockOrg('org-123', 'org-1')
+      org1.isDefault = true
+      const org2 = createMockOrg('org-456', 'org-2')
+      org2.isDefault = true
+
+      await manager.addOrg(org1)
+      await manager.addOrg(org2)
+
+      const defaultOrg = await manager.getDefaultOrg()
+      expect(defaultOrg?.orgId).to.equal('org-456')
+
+      const org1Retrieved = await manager.getOrg('org-123')
+      expect(org1Retrieved?.isDefault).to.be.false
+    })
+
+    it('should set organization as default by orgId', async () => {
+      const org1 = createMockOrg('org-123')
+      const org2 = createMockOrg('org-456')
+
+      await manager.addOrg(org1)
+      await manager.addOrg(org2)
+
+      await manager.setDefaultOrg('org-456')
+
+      const defaultOrg = await manager.getDefaultOrg()
+      expect(defaultOrg?.orgId).to.equal('org-456')
+    })
+
+    it('should set organization as default by alias', async () => {
+      const org1 = createMockOrg('org-123', 'first')
+      const org2 = createMockOrg('org-456', 'second')
+
+      await manager.addOrg(org1)
+      await manager.addOrg(org2)
+
+      await manager.setDefaultOrg('second')
+
+      const defaultOrg = await manager.getDefaultOrg()
+      expect(defaultOrg?.orgId).to.equal('org-456')
+    })
+
+    it('should unset previous default when setting new default', async () => {
+      const org1 = createMockOrg('org-123')
+      const org2 = createMockOrg('org-456')
+
+      await manager.addOrg(org1)
+      await manager.addOrg(org2)
+
+      await manager.setDefaultOrg('org-123')
+      await manager.setDefaultOrg('org-456')
+
+      const defaultOrg = await manager.getDefaultOrg()
+      expect(defaultOrg?.orgId).to.equal('org-456')
+
+      const org1Retrieved = await manager.getOrg('org-123')
+      expect(org1Retrieved?.isDefault).to.be.false
+    })
+
+    it('should throw error when setting non-existent org as default', async () => {
+      await expect(manager.setDefaultOrg('non-existent'))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.ORG_NOT_FOUND)
+    })
+
+    it('should update organization to be default', async () => {
+      const org1 = createMockOrg('org-123')
+      const org2 = createMockOrg('org-456')
+
+      await manager.addOrg(org1)
+      await manager.addOrg(org2)
+
+      await manager.updateOrg('org-123', {isDefault: true})
+
+      const defaultOrg = await manager.getDefaultOrg()
+      expect(defaultOrg?.orgId).to.equal('org-123')
+    })
+
+    it('should unset previous default when updating another org to default', async () => {
+      const org1 = createMockOrg('org-123')
+      org1.isDefault = true
+      const org2 = createMockOrg('org-456')
+
+      await manager.addOrg(org1)
+      await manager.addOrg(org2)
+
+      await manager.updateOrg('org-456', {isDefault: true})
+
+      const defaultOrg = await manager.getDefaultOrg()
+      expect(defaultOrg?.orgId).to.equal('org-456')
+
+      const org1Retrieved = await manager.getOrg('org-123')
+      expect(org1Retrieved?.isDefault).to.be.false
+    })
+
+    it('should allow explicitly unsetting default', async () => {
+      const org = createMockOrg('org-123')
+      org.isDefault = true
+
+      await manager.addOrg(org)
+      await manager.updateOrg('org-123', {isDefault: false})
+
+      const defaultOrg = await manager.getDefaultOrg()
+      expect(defaultOrg).to.be.null
+    })
+
+    it('should persist default flag across instances', async () => {
+      const org = createMockOrg('org-123', 'my-org')
+      org.isDefault = true
+      await manager.addOrg(org)
+
+      // Create new instance with same keychain
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(OrgManager as any).instance = null
+      const newManager = OrgManager.getInstance(mockKeychainService)
+      await newManager.initialize()
+
+      const defaultOrg = await newManager.getDefaultOrg()
+      expect(defaultOrg).to.not.be.null
+      expect(defaultOrg?.orgId).to.equal('org-123')
+      expect(defaultOrg?.isDefault).to.be.true
+    })
+  })
 })
