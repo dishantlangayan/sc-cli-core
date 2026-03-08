@@ -4,6 +4,8 @@ import {join} from 'node:path'
 
 import type {EncryptedData} from './auth-types.js'
 
+import {DefaultBaseUrl, EnvironmentVariable, envVars} from '../config/env-vars.js'
+import {ScConnection} from '../util/sc-connection.js'
 import {BrokerAuthEncryption} from './auth-encryption.js'
 import {KeychainService} from './keychain.js'
 import {type OrgConfig, OrgError, OrgErrorCode, type OrgStorage} from './org-types.js'
@@ -87,6 +89,26 @@ export class OrgManager {
 
     this.storage!.orgs = []
     await this.saveStorage()
+  }
+
+  /**
+   * Create ScConnection instance from stored org config
+   * @param identifier - Organization ID or alias
+   * @param timeout - Optional timeout override (default: 10000ms)
+   * @returns Configured ScConnection instance
+   */
+  public async createConnection(identifier: string, timeout = 10_000): Promise<ScConnection> {
+    this.ensureInitialized()
+
+    const org = await this.getOrg(identifier)
+    if (!org) {
+      throw new OrgError(`Organization '${identifier}' not found`, OrgErrorCode.ORG_NOT_FOUND)
+    }
+
+    // Use org's baseUrl if provided, otherwise fall back to default
+    const baseURL = org.baseUrl ?? envVars.getString(EnvironmentVariable.SC_BASE_URL, DefaultBaseUrl)
+
+    return new ScConnection(baseURL, org.accessToken, timeout)
   }
 
   /**
@@ -397,6 +419,24 @@ export class OrgManager {
     // Validate alias if provided
     if (org.alias !== undefined && org.alias.trim() === '') {
       throw new OrgError('Alias cannot be empty if provided', OrgErrorCode.INVALID_ORG_ID)
+    }
+
+    // Validate baseUrl if provided
+    if (org.baseUrl !== undefined) {
+      // Must not be empty or whitespace
+      if (org.baseUrl.trim() === '') {
+        throw new OrgError('Base URL cannot be empty if provided', OrgErrorCode.INVALID_BASE_URL)
+      }
+
+      // Must start with http:// or https://
+      if (!(org.baseUrl.startsWith('http://') || org.baseUrl.startsWith('https://'))) {
+        throw new OrgError('Base URL must start with http:// or https://', OrgErrorCode.INVALID_BASE_URL)
+      }
+
+      // Should not end with trailing slash
+      if (org.baseUrl.endsWith('/')) {
+        throw new OrgError('Base URL should not end with a slash', OrgErrorCode.INVALID_BASE_URL)
+      }
     }
   }
 }

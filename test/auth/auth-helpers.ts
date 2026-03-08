@@ -6,12 +6,14 @@ import {AuthType, type BasicBrokerAuth, type OAuthBrokerAuth} from '../../src/au
  * Create mock organization config for testing
  * @param orgId - Organization ID
  * @param alias - Optional alias
+ * @param baseUrl - Optional base URL
  * @returns Mock organization configuration
  */
-export function createMockOrg(orgId: string, alias?: string): OrgConfig {
+export function createMockOrg(orgId: string, alias?: string, baseUrl?: string): OrgConfig {
   return {
     accessToken: `access-token-${orgId}`,
     alias,
+    baseUrl,
     orgId,
   }
 }

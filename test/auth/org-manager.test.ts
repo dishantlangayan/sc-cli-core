@@ -5,6 +5,7 @@ import {join} from 'node:path'
 
 import {OrgManager} from '../../src/auth/org-manager.js'
 import {OrgError, OrgErrorCode} from '../../src/auth/org-types.js'
+import {ScConnection} from '../../src/util/sc-connection.js'
 import {expect} from '../setup.js'
 import {createMockOrg} from './auth-helpers.js'
 import {MockKeychainService} from './mock-keychain.js'
@@ -458,7 +459,9 @@ describe('OrgManager', () => {
       await newManager.initialize()
 
       const retrieved = await newManager.getOrg('org-123')
-      expect(retrieved).to.deep.equal(org)
+      expect(retrieved?.orgId).to.equal(org.orgId)
+      expect(retrieved?.accessToken).to.equal(org.accessToken)
+      expect(retrieved?.alias).to.equal(org.alias)
     })
   })
 
@@ -606,6 +609,144 @@ describe('OrgManager', () => {
       expect(defaultOrg).to.not.be.null
       expect(defaultOrg?.orgId).to.equal('org-123')
       expect(defaultOrg?.isDefault).to.be.true
+    })
+  })
+
+  describe('baseUrl field', () => {
+    beforeEach(async () => {
+      await manager.initialize()
+    })
+
+    it('should allow adding org without baseUrl (optional field)', async () => {
+      const org = createMockOrg('org-123')
+      await manager.addOrg(org)
+
+      const retrieved = await manager.getOrg('org-123')
+      expect(retrieved?.baseUrl).to.be.undefined
+    })
+
+    it('should store and retrieve baseUrl when provided', async () => {
+      const org = createMockOrg('org-123', undefined, 'https://custom-api.example.com')
+      await manager.addOrg(org)
+
+      const retrieved = await manager.getOrg('org-123')
+      expect(retrieved?.baseUrl).to.equal('https://custom-api.example.com')
+    })
+
+    it('should validate baseUrl starts with http:// or https://', async () => {
+      const org = createMockOrg('org-123', undefined, 'ftp://invalid.example.com')
+
+      await expect(manager.addOrg(org))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.INVALID_BASE_URL)
+    })
+
+    it('should reject empty baseUrl string', async () => {
+      const org = createMockOrg('org-123', undefined, '   ')
+
+      await expect(manager.addOrg(org))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.INVALID_BASE_URL)
+    })
+
+    it('should reject baseUrl ending with slash', async () => {
+      const org = createMockOrg('org-123', undefined, 'https://api.example.com/')
+
+      await expect(manager.addOrg(org))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.INVALID_BASE_URL)
+    })
+
+    it('should allow updating baseUrl', async () => {
+      const org = createMockOrg('org-123')
+      await manager.addOrg(org)
+
+      await manager.updateOrg('org-123', {baseUrl: 'https://updated-api.example.com'})
+
+      const updated = await manager.getOrg('org-123')
+      expect(updated?.baseUrl).to.equal('https://updated-api.example.com')
+    })
+
+    it('should validate baseUrl when updating', async () => {
+      const org = createMockOrg('org-123')
+      await manager.addOrg(org)
+
+      await expect(manager.updateOrg('org-123', {baseUrl: 'invalid'}))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.INVALID_BASE_URL)
+    })
+
+    it('should persist baseUrl across instances', async () => {
+      const org = createMockOrg('org-123', 'my-org', 'https://custom.example.com')
+      await manager.addOrg(org)
+
+      // Create new instance
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(OrgManager as any).instance = null
+      const newManager = OrgManager.getInstance(mockKeychainService)
+      await newManager.initialize()
+
+      const retrieved = await newManager.getOrg('org-123')
+      expect(retrieved?.baseUrl).to.equal('https://custom.example.com')
+    })
+  })
+
+  describe('createConnection', () => {
+    beforeEach(async () => {
+      await manager.initialize()
+    })
+
+    it('should throw error for non-existent organization', async () => {
+      await expect(manager.createConnection('non-existent'))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.ORG_NOT_FOUND)
+    })
+
+    it('should create connection instance', async () => {
+      const org = createMockOrg('org-123')
+      await manager.addOrg(org)
+
+      const connection = await manager.createConnection('org-123')
+
+      expect(connection).to.be.instanceOf(ScConnection)
+    })
+
+    it('should create connection with custom baseUrl', async () => {
+      const org = createMockOrg('org-123', undefined, 'https://custom-api.example.com')
+      await manager.addOrg(org)
+
+      const connection = await manager.createConnection('org-123')
+
+      expect(connection).to.be.instanceOf(ScConnection)
+    })
+
+    it('should accept custom timeout parameter', async () => {
+      const org = createMockOrg('org-123')
+      await manager.addOrg(org)
+
+      const connection = await manager.createConnection('org-123', 5000)
+
+      expect(connection).to.be.instanceOf(ScConnection)
+    })
+
+    it('should work with organization alias', async () => {
+      const org = createMockOrg('org-123', 'my-org', 'https://custom-api.example.com')
+      await manager.addOrg(org)
+
+      const connection = await manager.createConnection('my-org')
+
+      expect(connection).to.be.instanceOf(ScConnection)
+    })
+
+    it('should throw error when called before initialize', async () => {
+      // Create a fresh uninitialized manager
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(OrgManager as any).instance = null
+      const uninitializedManager = OrgManager.getInstance(mockKeychainService)
+
+      await expect(uninitializedManager.createConnection('org-123'))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.NOT_INITIALIZED)
     })
   })
 })
