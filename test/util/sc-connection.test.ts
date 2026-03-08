@@ -2,7 +2,7 @@ import axios from 'axios'
 import {afterEach, beforeEach, describe, it} from 'mocha'
 import sinon, {match} from 'sinon'
 
-import {DefaultBaseUrl, EnvironmentVariable, envVars} from '../../src/config/env-vars.js'
+import {DefaultBaseUrl} from '../../src/config/env-vars.js'
 import {ScConnection} from '../../src/util/sc-connection.js'
 import {expect, sandbox} from '../setup.js'
 
@@ -26,7 +26,6 @@ describe('ScConnection', () => {
   // Stubs and mocks
   let axiosCreateStub!: sinon.SinonStub
   let axiosInstanceStub!: AxiosInstanceStub
-  let envVarsGetStringStub!: sinon.SinonStub
   let consoleErrorStub!: sinon.SinonStub
 
   beforeEach(() => {
@@ -43,13 +42,10 @@ describe('ScConnection', () => {
       post: sandbox.stub(),
       put: sandbox.stub(),
     } as unknown as AxiosInstanceStub
-    
+
     // Use type assertion to satisfy TypeScript when stubbing axios.create
     // Note: We use a specific cast here instead of 'any' to maintain type safety
     axiosCreateStub = sandbox.stub(axios, 'create').returns(axiosInstanceStub as unknown as ReturnType<typeof axios.create>)
-
-    // Stub the getString method on the actual envVars instance
-    envVarsGetStringStub = sandbox.stub(envVars, 'getString')
 
     // Stub console.error to prevent test output pollution
     consoleErrorStub = sandbox.stub(console, 'error')
@@ -60,38 +56,36 @@ describe('ScConnection', () => {
   })
 
   describe('constructor', () => {
-    it('should create an instance with default parameters', () => {
+    it('should create an instance with default options', () => {
       // Arrange
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_BASE_URL, DefaultBaseUrl).returns(DefaultBaseUrl)
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_ACCESS_TOKEN, '').returns('')
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_API_VERSION, 'v2').returns('v2')
+      const baseUrl = DefaultBaseUrl
+      const token = 'test-token'
 
       // Act
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const connection = new ScConnection()
+      const connection = new ScConnection(baseUrl, token)
 
       // Assert
       expect(axiosCreateStub.calledOnce).to.be.true
       expect(axiosCreateStub.firstCall.args[0]).to.deep.include({
-        baseURL: `${DefaultBaseUrl}/api/v2`,
+        baseURL: `${baseUrl}/api/v2`,
         headers: {
-          Authorization: 'Bearer ',
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         timeout: 10_000,
       })
     })
 
-    it('should create an instance with custom parameters', () => {
+    it('should create an instance with custom options', () => {
       // Arrange
       const customBaseUrl = 'https://custom-api.example.com'
       const customToken = 'custom-token'
       const customTimeout = 5000
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_API_VERSION, 'v2').returns('v2')
 
       // Act
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const connection = new ScConnection(customBaseUrl, customToken, customTimeout)
+      const connection = new ScConnection(customBaseUrl, customToken, {timeout: customTimeout})
 
       // Assert
       expect(axiosCreateStub.calledOnce).to.be.true
@@ -105,35 +99,33 @@ describe('ScConnection', () => {
       })
     })
 
-    it('should use custom API version if provided in environment variables', () => {
+    it('should use custom API version when provided', () => {
       // Arrange
       const customApiVersion = 'v3'
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_BASE_URL, DefaultBaseUrl).returns(DefaultBaseUrl)
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_ACCESS_TOKEN, '').returns('')
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_API_VERSION, 'v2').returns(customApiVersion)
+      const baseUrl = DefaultBaseUrl
+      const token = 'test-token'
 
       // Act
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const connection = new ScConnection()
+      const connection = new ScConnection(baseUrl, token, {apiVersion: customApiVersion})
 
       // Assert
-      expect(axiosCreateStub.firstCall.args[0].baseURL).to.equal(`${DefaultBaseUrl}/api/${customApiVersion}`)
+      expect(axiosCreateStub.firstCall.args[0].baseURL).to.equal(`${baseUrl}/api/${customApiVersion}`)
     })
 
-    it('should create an instance with basic=true', () => {
+    it('should create SEMP connection with basic auth', () => {
       // Arrange
       const customBaseUrl = 'https://api.example.com'
       const customToken = 'test-token'
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SEMP_API_VERSION, 'v2').returns('v2')
 
       // Act
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const connection = new ScConnection(customBaseUrl, customToken, 10_000, true)
+      const connection = new ScConnection(customBaseUrl, customToken, {apiType: 'semp', authType: 'basic'})
 
       // Assert
       expect(axiosCreateStub.calledOnce).to.be.true
       expect(axiosCreateStub.firstCall.args[0]).to.deep.include({
-        baseURL: `${customBaseUrl}/SEMP/v2`,
+        baseURL: customBaseUrl,
         headers: {
           Authorization: `Basic ${customToken}`,
           'Content-Type': 'application/json',
@@ -142,37 +134,30 @@ describe('ScConnection', () => {
       })
     })
 
-    it('should use custom SEMP API version if provided in environment variables', () => {
+    it('should use cloud API with custom version', () => {
       // Arrange
-      const customSempApiVersion = 'v3'
+      const customApiVersion = 'v3'
       const customBaseUrl = 'https://api.example.com'
-      const customToken = 'semp-token'
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SEMP_API_VERSION, 'v2').returns(customSempApiVersion)
+      const customToken = 'cloud-token'
 
       // Act
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const connection = new ScConnection(customBaseUrl, customToken, 10_000, true)
+      const connection = new ScConnection(customBaseUrl, customToken, {apiType: 'cloud', apiVersion: customApiVersion})
 
       // Assert
-      expect(axiosCreateStub.firstCall.args[0].baseURL).to.equal(`${customBaseUrl}/SEMP/${customSempApiVersion}`)
-      expect(axiosCreateStub.firstCall.args[0].headers.Authorization).to.equal(`Basic ${customToken}`)
+      expect(axiosCreateStub.firstCall.args[0].baseURL).to.equal(`${customBaseUrl}/api/${customApiVersion}`)
+      expect(axiosCreateStub.firstCall.args[0].headers.Authorization).to.equal(`Bearer ${customToken}`)
     })
 
     it('should correctly join paths with and without trailing/leading slashes', () => {
       // Arrange
       const baseUrls = ['https://api.example.com', 'https://api.example.com/']
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_ACCESS_TOKEN, '').returns('')
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_API_VERSION, 'v2').returns('v2')
+      const token = 'test-token'
 
       for (const baseUrl of baseUrls) {
-        // Reset previous stubs
-        envVarsGetStringStub.reset()
-        envVarsGetStringStub.withArgs(EnvironmentVariable.SC_ACCESS_TOKEN, '').returns('')
-        envVarsGetStringStub.withArgs(EnvironmentVariable.SC_API_VERSION, 'v2').returns('v2')
-
         // Act
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const connection = new ScConnection(baseUrl)
+        const connection = new ScConnection(baseUrl, token)
 
         // Assert
         expect(
@@ -186,6 +171,16 @@ describe('ScConnection', () => {
         axiosCreateStub.resetHistory()
       }
     })
+
+    it('should throw error for empty baseURL', () => {
+      expect(() => new ScConnection('', 'token')).to.throw('baseURL is required and cannot be empty')
+      expect(() => new ScConnection('   ', 'token')).to.throw('baseURL is required and cannot be empty')
+    })
+
+    it('should throw error for empty accessToken', () => {
+      expect(() => new ScConnection('https://api.example.com', '')).to.throw('accessToken is required and cannot be empty')
+      expect(() => new ScConnection('https://api.example.com', '   ')).to.throw('accessToken is required and cannot be empty')
+    })
   })
 
   describe('HTTP methods', () => {
@@ -196,11 +191,7 @@ describe('ScConnection', () => {
     const responseData = {result: 'success'}
 
     beforeEach(() => {
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_BASE_URL, DefaultBaseUrl).returns(DefaultBaseUrl)
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_ACCESS_TOKEN, '').returns('')
-      envVarsGetStringStub.withArgs(EnvironmentVariable.SC_API_VERSION, 'v2').returns('v2')
-
-      connection = new ScConnection()
+      connection = new ScConnection(DefaultBaseUrl, 'test-token')
     })
 
     it('should make a GET request and return response data', async () => {

@@ -749,4 +749,53 @@ describe('OrgManager', () => {
         .and.eventually.have.property('code', OrgErrorCode.NOT_INITIALIZED)
     })
   })
+
+  describe('apiVersion field', () => {
+    beforeEach(async () => {
+      await manager.initialize()
+    })
+
+    it('should allow adding org without apiVersion (optional field)', async () => {
+      const org = createMockOrg('org-123')
+      await manager.addOrg(org)
+
+      const retrieved = await manager.getOrg('org-123')
+      expect(retrieved?.apiVersion).to.be.undefined
+    })
+
+    it('should store and retrieve apiVersion when provided', async () => {
+      const org = createMockOrg('org-123', undefined, undefined, 'v3')
+      await manager.addOrg(org)
+
+      const retrieved = await manager.getOrg('org-123')
+      expect(retrieved?.apiVersion).to.equal('v3')
+    })
+
+    it('should reject empty apiVersion string', async () => {
+      const org = createMockOrg('org-123', undefined, undefined, '   ')
+
+      await expect(manager.addOrg(org))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.INVALID_API_VERSION)
+    })
+
+    it('should allow updating apiVersion', async () => {
+      const org = createMockOrg('org-123')
+      await manager.addOrg(org)
+
+      await manager.updateOrg('org-123', {apiVersion: 'v3'})
+
+      const updated = await manager.getOrg('org-123')
+      expect(updated?.apiVersion).to.equal('v3')
+    })
+
+    it('should validate apiVersion when updating', async () => {
+      const org = createMockOrg('org-123')
+      await manager.addOrg(org)
+
+      await expect(manager.updateOrg('org-123', {apiVersion: '   '}))
+        .to.be.rejectedWith(OrgError)
+        .and.eventually.have.property('code', OrgErrorCode.INVALID_API_VERSION)
+    })
+  })
 })

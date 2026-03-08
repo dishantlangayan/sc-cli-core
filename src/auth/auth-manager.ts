@@ -113,9 +113,12 @@ export class BrokerAuthManager {
 
     const baseURL = `${broker.sempEndpoint}:${broker.sempPort}`
     const accessToken = broker.authType === AuthType.OAUTH ? broker.accessToken : broker.encodedCredentials
-    const isBasic = broker.authType === AuthType.BASIC
 
-    return new ScConnection(baseURL, accessToken, timeout, isBasic)
+    return new ScConnection(baseURL, accessToken, {
+      apiType: 'semp',
+      authType: broker.authType === AuthType.BASIC ? 'basic' : 'bearer',
+      timeout,
+    })
   }
 
   /**

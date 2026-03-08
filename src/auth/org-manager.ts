@@ -105,10 +105,18 @@ export class OrgManager {
       throw new OrgError(`Organization '${identifier}' not found`, OrgErrorCode.ORG_NOT_FOUND)
     }
 
-    // Use org's baseUrl if provided, otherwise fall back to default
+    // Get base URL: org config → env var → default
     const baseURL = org.baseUrl ?? envVars.getString(EnvironmentVariable.SC_BASE_URL, DefaultBaseUrl)
 
-    return new ScConnection(baseURL, org.accessToken, timeout)
+    // Get API version: org config → env var → default 'v2'
+    const apiVersion = org.apiVersion ?? envVars.getString(EnvironmentVariable.SC_API_VERSION, 'v2')
+
+    return new ScConnection(baseURL, org.accessToken, {
+      apiType: 'cloud',
+      apiVersion,
+      authType: 'bearer',
+      timeout,
+    })
   }
 
   /**
@@ -419,6 +427,11 @@ export class OrgManager {
     // Validate alias if provided
     if (org.alias !== undefined && org.alias.trim() === '') {
       throw new OrgError('Alias cannot be empty if provided', OrgErrorCode.INVALID_ORG_ID)
+    }
+
+    // Validate apiVersion if provided
+    if (org.apiVersion !== undefined && org.apiVersion.trim() === '') {
+      throw new OrgError('API version cannot be empty if provided', OrgErrorCode.INVALID_API_VERSION)
     }
 
     // Validate baseUrl if provided

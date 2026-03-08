@@ -4,6 +4,7 @@
 export interface OrgConfig {
   accessToken: string
   alias?: string
+  apiVersion?: string
   baseUrl?: string
   isDefault?: boolean
   orgId: string
@@ -26,6 +27,7 @@ export enum OrgErrorCode {
   FILE_READ_ERROR = 'FILE_READ_ERROR',
   FILE_WRITE_ERROR = 'FILE_WRITE_ERROR',
   INVALID_ACCESS_TOKEN = 'INVALID_ACCESS_TOKEN',
+  INVALID_API_VERSION = 'INVALID_API_VERSION',
   INVALID_BASE_URL = 'INVALID_BASE_URL',
   INVALID_ORG_ID = 'INVALID_ORG_ID',
   NOT_INITIALIZED = 'NOT_INITIALIZED',
