@@ -19,12 +19,12 @@ export class BrokerAuthEncryption {
   private static readonly TAG_LENGTH = 16
 
   /**
-   * Decrypt broker storage data
+   * Decrypt storage data
    * @param encryptedData - Encrypted data to decrypt
    * @param key - Decryption key
-   * @returns Decrypted broker storage
+   * @returns Decrypted storage
    */
-  public static async decrypt(encryptedData: EncryptedData, key: Buffer): Promise<BrokerAuthStorage> {
+  public static async decrypt<T = BrokerAuthStorage>(encryptedData: EncryptedData, key: Buffer): Promise<T> {
     try {
       // Parse metadata and buffers
       const iv = Buffer.from(encryptedData.iv, 'base64')
@@ -39,7 +39,7 @@ export class BrokerAuthEncryption {
       decrypted += decipher.final('utf8')
 
       // Parse JSON
-      const storage = JSON.parse(decrypted) as BrokerAuthStorage
+      const storage = JSON.parse(decrypted) as T
 
       return storage
     } catch (error) {
@@ -78,12 +78,12 @@ export class BrokerAuthEncryption {
   }
 
   /**
-   * Encrypt broker storage data
-   * @param data - Broker storage to encrypt
+   * Encrypt storage data
+   * @param data - Storage to encrypt
    * @param key - Encryption key
    * @returns Encrypted data with metadata
    */
-  public static async encrypt(data: BrokerAuthStorage, key: Buffer): Promise<EncryptedData> {
+  public static async encrypt<T = BrokerAuthStorage>(data: T, key: Buffer): Promise<EncryptedData> {
     try {
       // Generate random IV
       const iv = randomBytes(this.IV_LENGTH)

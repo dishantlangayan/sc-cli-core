@@ -1,4 +1,20 @@
+import type {OrgConfig} from '../../src/auth/org-types.js'
+
 import {AuthType, type BasicBrokerAuth, type OAuthBrokerAuth} from '../../src/auth/auth-types.js'
+
+/**
+ * Create mock organization config for testing
+ * @param orgId - Organization ID
+ * @param alias - Optional alias
+ * @returns Mock organization configuration
+ */
+export function createMockOrg(orgId: string, alias?: string): OrgConfig {
+  return {
+    accessToken: `access-token-${orgId}`,
+    alias,
+    orgId,
+  }
+}
 
 /**
  * Create mock OAuth broker for testing
