@@ -23,6 +23,8 @@ The ScConnection class provide abstraction functions for Solace Cloud API REST c
 ## OrgManager
 The OrgManager class provides utility functions to store and retrieve Solace Cloud authentication information from user's home directory: `~/.sc/` or `%USERPROFILE%\sc\`. The implementation uses AES-256-GCM for authenticated encryption and provides machine-bound encryption that combines OS-level security (keychain) with machine-specific identifiers, making credentials non-transferable between machines.
 
+Supports changing of the Solace Cloud REST API base url using the environment variable `SC_BASE_URL` and API version using `SC_API_VERSION`.
+
 ## BrokerAuthManager
 The BrokerAuthManager class provides utility functions to store and retrieve broker SEMP management authentication information similar to the `OrgManager` class. It supports Basic and OAuth authentication schemes.
 
