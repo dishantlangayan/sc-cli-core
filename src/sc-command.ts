@@ -1,5 +1,7 @@
 import {Command, Flags, Interfaces} from '@oclif/core'
 
+import {BrokerAuthManager} from './auth/auth-manager.js'
+import {OrgManager} from './auth/org-manager.js'
 import {DefaultBaseUrl, EnvironmentVariable, envVars} from './config/env-vars.js'
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<(typeof ScCommand)['baseFlags'] & T['flags']>
@@ -25,6 +27,8 @@ export abstract class ScCommand<T extends typeof Command> extends Command {
   static enableJsonFlag = true
   protected args!: Args<T>
   protected flags!: Flags<T>
+  private _brokerAuthManager?: BrokerAuthManager
+  private _orgManager?: OrgManager
 
   protected async catch(err: Error & {exitCode?: number}): Promise<unknown> {
     // add any custom logic to handle errors from the command
@@ -35,6 +39,32 @@ export abstract class ScCommand<T extends typeof Command> extends Command {
   protected async finally(_: Error | undefined): Promise<unknown> {
     // called after run and catch regardless of whether or not the command errored
     return super.finally(_)
+  }
+
+  /**
+   * Get BrokerAuthManager instance with lazy initialization
+   * @returns Initialized BrokerAuthManager instance
+   */
+  protected async getBrokerAuthManager(): Promise<BrokerAuthManager> {
+    if (!this._brokerAuthManager) {
+      this._brokerAuthManager = BrokerAuthManager.getInstance()
+      await this._brokerAuthManager.initialize()
+    }
+
+    return this._brokerAuthManager
+  }
+
+  /**
+   * Get OrgManager instance with lazy initialization
+   * @returns Initialized OrgManager instance
+   */
+  protected async getOrgManager(): Promise<OrgManager> {
+    if (!this._orgManager) {
+      this._orgManager = OrgManager.getInstance()
+      await this._orgManager.initialize()
+    }
+
+    return this._orgManager
   }
 
   public async init(): Promise<void> {

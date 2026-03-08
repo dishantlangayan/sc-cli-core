@@ -6,6 +6,11 @@ export {
   BrokerAuthErrorCode,
   BrokerAuthManager,
   type OAuthBrokerAuth,
+  type OrgConfig,
+  OrgError,
+  OrgErrorCode,
+  OrgManager,
+  type OrgStorage,
 } from './auth/index.js'
 export {EnvironmentVariable, envVars} from './config/env-vars.js'
 export {ScCommand} from './sc-command.js'

@@ -1,6 +1,6 @@
 /**
- * Broker authentication management module
- * Provides encrypted storage for SEMP broker credentials
+ * Authentication management module
+ * Provides encrypted storage for broker and organization credentials
  */
 
 export {BrokerAuthEncryption} from './auth-encryption.js'
@@ -17,3 +17,5 @@ export {
   type EncryptionMetadata,
   type OAuthBrokerAuth,
 } from './auth-types.js'
+export {OrgManager} from './org-manager.js'
+export {type OrgConfig, OrgError, OrgErrorCode, type OrgStorage} from './org-types.js'
