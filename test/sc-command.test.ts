@@ -6,6 +6,7 @@ import {join} from 'node:path'
 import {BrokerAuthManager} from '../src/auth/auth-manager.js'
 import {OrgManager} from '../src/auth/org-manager.js'
 import {ScCommand} from '../src/sc-command.js'
+import {MockKeychainService} from './auth/mock-keychain.js'
 import {expect} from './setup.js'
 
 // Mock command class for testing
@@ -27,13 +28,21 @@ class TestCommand extends ScCommand<typeof TestCommand> {
 describe('ScCommand', () => {
   const brokersConfigFile = join(homedir(), '.sc', 'brokers.json')
   const orgsConfigFile = join(homedir(), '.sc', 'orgs.json')
+  let mockKeychain: MockKeychainService
 
   beforeEach(() => {
-    // Reset singletons
+    // Create mock keychain for testing
+    mockKeychain = new MockKeychainService()
+
+    // Reset singletons and initialize with mock keychain
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(BrokerAuthManager as any).instance = null
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(OrgManager as any).instance = null
+
+    // Initialize singletons with mock keychain
+    BrokerAuthManager.getInstance(mockKeychain)
+    OrgManager.getInstance(mockKeychain)
   })
 
   afterEach(async () => {
