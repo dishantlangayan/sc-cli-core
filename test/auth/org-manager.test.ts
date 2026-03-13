@@ -82,15 +82,33 @@ describe('OrgManager', () => {
       expect(retrievedByAlias).to.deep.equal(org)
     })
 
-    it('should reject duplicate orgId', async () => {
+    it('should reject duplicate orgId when no alias provided', async () => {
       const org1 = createMockOrg('org-123')
-      const org2 = createMockOrg('org-123', 'different-alias')
+      const org2 = createMockOrg('org-123')
 
       await manager.addOrg(org1)
 
       await expect(manager.addOrg(org2))
         .to.be.rejectedWith(OrgError)
         .and.eventually.have.property('code', OrgErrorCode.ORG_ALREADY_EXISTS)
+    })
+
+    it('should allow same orgId with different aliases', async () => {
+      const org1 = createMockOrg('org-123', 'production')
+      const org2 = createMockOrg('org-123', 'staging')
+
+      await manager.addOrg(org1)
+      await manager.addOrg(org2)
+
+      const retrievedProd = await manager.getOrg('production')
+      const retrievedStaging = await manager.getOrg('staging')
+
+      expect(retrievedProd).to.not.be.null
+      expect(retrievedStaging).to.not.be.null
+      expect(retrievedProd?.orgId).to.equal('org-123')
+      expect(retrievedStaging?.orgId).to.equal('org-123')
+      expect(retrievedProd?.alias).to.equal('production')
+      expect(retrievedStaging?.alias).to.equal('staging')
     })
 
     it('should reject duplicate alias', async () => {

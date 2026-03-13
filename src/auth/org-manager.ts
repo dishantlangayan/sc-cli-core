@@ -56,16 +56,20 @@ export class OrgManager {
     // Validate organization
     this.validateOrg(org)
 
-    // Check if organization already exists (by orgId or alias)
-    const existingByOrgId = this.storage!.orgs.find((o) => o.orgId === org.orgId)
-    if (existingByOrgId) {
-      throw new OrgError(`Organization '${org.orgId}' already exists`, OrgErrorCode.ORG_ALREADY_EXISTS)
-    }
-
+    // Check if alias already exists (aliases must be globally unique)
     if (org.alias) {
       const existingByAlias = this.storage!.orgs.find((o) => o.alias === org.alias)
       if (existingByAlias) {
         throw new OrgError(`Organization with alias '${org.alias}' already exists`, OrgErrorCode.ORG_ALREADY_EXISTS)
+      }
+    }
+
+    // If no alias provided, check if orgId already exists (maintain current behavior)
+    // If alias is provided, allow multiple tokens for the same orgId with different aliases
+    if (!org.alias) {
+      const existingByOrgId = this.storage!.orgs.find((o) => o.orgId === org.orgId)
+      if (existingByOrgId) {
+        throw new OrgError(`Organization '${org.orgId}' already exists`, OrgErrorCode.ORG_ALREADY_EXISTS)
       }
     }
 
