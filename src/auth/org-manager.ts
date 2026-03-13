@@ -359,6 +359,20 @@ export class OrgManager {
         throw new OrgError('Org manager not initialized', OrgErrorCode.NOT_INITIALIZED)
       }
 
+      // If storage is empty, delete the file instead of saving
+      if (this.storage!.orgs.length === 0) {
+        try {
+          await unlink(this.configFile)
+        } catch (error) {
+          // Ignore if file doesn't exist (ENOENT)
+          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw error
+          }
+        }
+
+        return
+      }
+
       // Ensure directory exists
       await mkdir(this.configDir, {mode: 0o700, recursive: true})
 
