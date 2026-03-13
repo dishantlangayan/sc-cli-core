@@ -2,7 +2,6 @@ import {Command, Flags, Interfaces} from '@oclif/core'
 
 import {BrokerAuthManager} from './auth/auth-manager.js'
 import {OrgManager} from './auth/org-manager.js'
-import {DefaultBaseUrl, EnvironmentVariable, envVars} from './config/env-vars.js'
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<(typeof ScCommand)['baseFlags'] & T['flags']>
 export type Args<T extends typeof Command> = Interfaces.InferredArgs<T['args']>
@@ -78,19 +77,5 @@ export abstract class ScCommand<T extends typeof Command> extends Command {
     })
     this.flags = flags as Flags<T>
     this.args = args as Args<T>
-
-    // set base url if not defined in environment variables
-    if (!envVars.getString(EnvironmentVariable.SC_BASE_URL)) {
-      this.debug(`Environment variable '${EnvironmentVariable.SC_BASE_URL}' not set, using default '${DefaultBaseUrl}'`)
-      envVars.setString(EnvironmentVariable.SC_BASE_URL, DefaultBaseUrl)
-    }
-
-    // Check if Access Token is set
-    const value = envVars.getString(EnvironmentVariable.SC_ACCESS_TOKEN)
-    if (!value) {
-      this.error(
-        `Environment variable ${EnvironmentVariable.SC_ACCESS_TOKEN} is not set and required for any API operations.`,
-      )
-    }
   }
 }
