@@ -11,9 +11,7 @@ describe('AuthEncryption', () => {
       {
         accessToken: 'test-access-token',
         authType: AuthType.OAUTH,
-        clientId: 'test-client-id',
         name: 'test-broker',
-        refreshToken: 'test-refresh-token',
         sempEndpoint: 'https://test.example.com',
         sempPort: 943,
       },
@@ -189,15 +187,13 @@ describe('AuthEncryption', () => {
           {
             accessToken: 'oauth-token',
             authType: AuthType.OAUTH,
-            clientId: 'client-1',
             name: 'broker1',
-            refreshToken: 'refresh-1',
             sempEndpoint: 'https://broker1.example.com',
             sempPort: 943,
           },
           {
+            accessToken: Buffer.from('admin:admin').toString('base64'),
             authType: AuthType.BASIC,
-            encodedCredentials: Buffer.from('admin:admin').toString('base64'),
             name: 'broker2',
             sempEndpoint: 'https://broker2.example.com',
             sempPort: 8080,

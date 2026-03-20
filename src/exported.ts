@@ -1,11 +1,9 @@
 export {
   AuthType,
-  type BasicBrokerAuth,
   type BrokerAuth,
   BrokerAuthError,
   BrokerAuthErrorCode,
   BrokerAuthManager,
-  type OAuthBrokerAuth,
   type OrgConfig,
   OrgError,
   OrgErrorCode,

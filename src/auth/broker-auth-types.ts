@@ -7,37 +7,21 @@ export enum AuthType {
 }
 
 /**
- * Base broker authentication configuration
+ * Broker authentication configuration
+ *
+ * @property {string} accessToken - For OAuth: access token string. For Basic: base64-encoded credentials
+ * @property {AuthType} authType - Type of authentication (BASIC or OAUTH)
+ * @property {string} name - Human-readable name/alias for the broker
+ * @property {string} sempEndpoint - SEMP endpoint URL (must start with http:// or https://)
+ * @property {number} sempPort - SEMP port number (1-65535)
  */
-export interface BrokerAuthBase {
+export interface BrokerAuth {
+  accessToken: string
   authType: AuthType
   name: string
   sempEndpoint: string
   sempPort: number
 }
-
-/**
- * OAuth broker authentication configuration
- */
-export interface OAuthBrokerAuth extends BrokerAuthBase {
-  accessToken: string
-  authType: AuthType.OAUTH
-  clientId: string
-  refreshToken: string
-}
-
-/**
- * Basic authentication broker configuration
- */
-export interface BasicBrokerAuth extends BrokerAuthBase {
-  authType: AuthType.BASIC
-  encodedCredentials: string
-}
-
-/**
- * Union type for broker authentication
- */
-export type BrokerAuth = BasicBrokerAuth | OAuthBrokerAuth
 
 /**
  * Storage format for broker configurations
@@ -57,11 +41,10 @@ export enum BrokerAuthErrorCode {
   ENCRYPTION_FAILED = 'ENCRYPTION_FAILED',
   FILE_READ_ERROR = 'FILE_READ_ERROR',
   FILE_WRITE_ERROR = 'FILE_WRITE_ERROR',
+  INVALID_ACCESS_TOKEN = 'INVALID_ACCESS_TOKEN',
   INVALID_AUTH_TYPE = 'INVALID_AUTH_TYPE',
-  INVALID_BASIC_CONFIG = 'INVALID_BASIC_CONFIG',
   INVALID_ENDPOINT = 'INVALID_ENDPOINT',
   INVALID_NAME = 'INVALID_NAME',
-  INVALID_OAUTH_CONFIG = 'INVALID_OAUTH_CONFIG',
   INVALID_PASSWORD = 'INVALID_PASSWORD',
   INVALID_PORT = 'INVALID_PORT',
   NOT_INITIALIZED = 'NOT_INITIALIZED',

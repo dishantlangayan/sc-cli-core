@@ -64,7 +64,7 @@ describe('BrokerAuthManager', () => {
 
     it('should validate Basic auth required fields', async () => {
       const broker = createMockBasicBroker('test')
-      broker.encodedCredentials = ''
+      broker.accessToken = ''
 
       await expect(manager.addBroker(broker)).to.be.rejectedWith(BrokerAuthError)
     })
@@ -84,13 +84,13 @@ describe('BrokerAuthManager', () => {
     it('should work with OAuth brokers', () => {
       const broker = createMockOAuthBroker('test')
       expect(broker).to.have.property('accessToken')
-      expect(broker).to.have.property('refreshToken')
-      expect(broker).to.have.property('clientId')
+      expect(broker).to.have.property('authType')
     })
 
     it('should work with Basic auth brokers', () => {
       const broker = createMockBasicBroker('test')
-      expect(broker).to.have.property('encodedCredentials')
+      expect(broker).to.have.property('accessToken')
+      expect(broker).to.have.property('authType')
     })
   })
 

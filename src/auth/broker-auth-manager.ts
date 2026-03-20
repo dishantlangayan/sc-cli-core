@@ -112,7 +112,7 @@ export class BrokerAuthManager {
     }
 
     const baseURL = `${broker.sempEndpoint}:${broker.sempPort}`
-    const accessToken = broker.authType === AuthType.OAUTH ? broker.accessToken : broker.encodedCredentials
+    const {accessToken} = broker
 
     return new ScConnection(baseURL, accessToken, {
       apiType: 'semp',
@@ -365,23 +365,14 @@ export class BrokerAuthManager {
       throw new BrokerAuthError('SEMP port must be between 1 and 65535', BrokerAuthErrorCode.INVALID_PORT)
     }
 
-    // Validate auth-specific fields
-    if (broker.authType === AuthType.OAUTH) {
-      if (!broker.accessToken || !broker.clientId) {
-        throw new BrokerAuthError(
-          'OAuth brokers require accessToken and clientId',
-          BrokerAuthErrorCode.INVALID_OAUTH_CONFIG,
-        )
-      }
-    } else if (broker.authType === AuthType.BASIC) {
-      if (!broker.encodedCredentials) {
-        throw new BrokerAuthError(
-          'Basic auth brokers require encodedCredentials',
-          BrokerAuthErrorCode.INVALID_BASIC_CONFIG,
-        )
-      }
-    } else {
+    // Validate auth type
+    if (broker.authType !== AuthType.OAUTH && broker.authType !== AuthType.BASIC) {
       throw new BrokerAuthError('Invalid auth type', BrokerAuthErrorCode.INVALID_AUTH_TYPE)
+    }
+
+    // Validate access token
+    if (!broker.accessToken || broker.accessToken.trim() === '') {
+      throw new BrokerAuthError('Access token is required', BrokerAuthErrorCode.INVALID_ACCESS_TOKEN)
     }
   }
 }

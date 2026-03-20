@@ -1,6 +1,6 @@
 import type {OrgConfig} from '../../src/auth/org-types.js'
 
-import {AuthType, type BasicBrokerAuth, type OAuthBrokerAuth} from '../../src/auth/broker-auth-types.js'
+import {AuthType, type BrokerAuth} from '../../src/auth/broker-auth-types.js'
 
 /**
  * Create mock organization config for testing
@@ -25,13 +25,11 @@ export function createMockOrg(orgId: string, alias?: string, baseUrl?: string, a
  * @param name - Broker name
  * @returns Mock OAuth broker configuration
  */
-export function createMockOAuthBroker(name: string): OAuthBrokerAuth {
+export function createMockOAuthBroker(name: string): BrokerAuth {
   return {
     accessToken: `access-token-${name}`,
     authType: AuthType.OAUTH,
-    clientId: `client-id-${name}`,
     name,
-    refreshToken: `refresh-token-${name}`,
     sempEndpoint: `https://${name}.example.com`,
     sempPort: 943,
   }
@@ -42,10 +40,10 @@ export function createMockOAuthBroker(name: string): OAuthBrokerAuth {
  * @param name - Broker name
  * @returns Mock Basic auth broker configuration
  */
-export function createMockBasicBroker(name: string): BasicBrokerAuth {
+export function createMockBasicBroker(name: string): BrokerAuth {
   return {
+    accessToken: Buffer.from(`${name}:password`).toString('base64'),
     authType: AuthType.BASIC,
-    encodedCredentials: Buffer.from(`${name}:password`).toString('base64'),
     name,
     sempEndpoint: `https://${name}.example.com`,
     sempPort: 8080,
