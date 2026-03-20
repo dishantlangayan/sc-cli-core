@@ -4,14 +4,14 @@ import {join} from 'node:path'
 
 import {ScConnection} from '../util/sc-connection.js'
 import {AuthEncryption} from './auth-encryption.js'
+import {type EncryptedData} from './auth-types.js'
 import {
   AuthType,
   type BrokerAuth,
   BrokerAuthError,
   BrokerAuthErrorCode,
   type BrokerAuthStorage,
-  type EncryptedData,
-} from './auth-types.js'
+} from './broker-auth-types.js'
 import {KeychainService} from './keychain.js'
 
 const SERVICE_NAME = 'local'

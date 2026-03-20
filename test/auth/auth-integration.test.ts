@@ -1,6 +1,6 @@
 import {describe, it} from 'mocha'
 
-import {AuthType} from '../../src/auth/auth-types.js'
+import {AuthType} from '../../src/auth/broker-auth-types.js'
 import {expect} from '../setup.js'
 import {createMockBasicBroker, createMockOAuthBroker} from './auth-helpers.js'
 

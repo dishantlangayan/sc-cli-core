@@ -4,7 +4,7 @@
  */
 
 export {AuthEncryption} from './auth-encryption.js'
-export {BrokerAuthManager} from './auth-manager.js'
+export {type EncryptedData, type EncryptionMetadata} from './auth-types.js'
 export {
   AuthType,
   type BasicBrokerAuth,
@@ -13,9 +13,8 @@ export {
   BrokerAuthError,
   BrokerAuthErrorCode,
   type BrokerAuthStorage,
-  type EncryptedData,
-  type EncryptionMetadata,
   type OAuthBrokerAuth,
-} from './auth-types.js'
+} from './broker-auth-types.js'
+export {BrokerAuthManager} from './broker-auth-manager.js'
 export {OrgManager} from './org-manager.js'
 export {type OrgConfig, OrgError, OrgErrorCode, type OrgStorage} from './org-types.js'

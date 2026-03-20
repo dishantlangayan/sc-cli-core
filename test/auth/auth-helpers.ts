@@ -1,6 +1,6 @@
 import type {OrgConfig} from '../../src/auth/org-types.js'
 
-import {AuthType, type BasicBrokerAuth, type OAuthBrokerAuth} from '../../src/auth/auth-types.js'
+import {AuthType, type BasicBrokerAuth, type OAuthBrokerAuth} from '../../src/auth/broker-auth-types.js'
 
 /**
  * Create mock organization config for testing

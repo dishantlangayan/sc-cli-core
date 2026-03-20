@@ -1,7 +1,7 @@
 import {describe, it} from 'mocha'
 
 import {AuthEncryption} from '../../src/auth/auth-encryption.js'
-import {AuthType, type BrokerAuthStorage} from '../../src/auth/auth-types.js'
+import {AuthType, type BrokerAuthStorage} from '../../src/auth/broker-auth-types.js'
 import {expect} from '../setup.js'
 
 describe('AuthEncryption', () => {

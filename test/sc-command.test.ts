@@ -3,7 +3,7 @@ import {unlink} from 'node:fs/promises'
 import {homedir} from 'node:os'
 import {join} from 'node:path'
 
-import {BrokerAuthManager} from '../src/auth/auth-manager.js'
+import {BrokerAuthManager} from '../src/auth/broker-auth-manager.js'
 import {OrgManager} from '../src/auth/org-manager.js'
 import {ScCommand} from '../src/sc-command.js'
 import {MockKeychainService} from './auth/mock-keychain.js'

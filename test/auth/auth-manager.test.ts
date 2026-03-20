@@ -1,7 +1,7 @@
 import {beforeEach, describe, it} from 'mocha'
 
-import {BrokerAuthManager} from '../../src/auth/auth-manager.js'
-import {BrokerAuthError, BrokerAuthErrorCode} from '../../src/auth/auth-types.js'
+import {BrokerAuthManager} from '../../src/auth/broker-auth-manager.js'
+import {BrokerAuthError, BrokerAuthErrorCode} from '../../src/auth/broker-auth-types.js'
 import {expect} from '../setup.js'
 import {createMockBasicBroker, createMockOAuthBroker} from './auth-helpers.js'
 import {MockKeychainService} from './mock-keychain.js'

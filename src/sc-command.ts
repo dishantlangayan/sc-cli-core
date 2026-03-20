@@ -1,6 +1,6 @@
 import {Command, Flags, Interfaces} from '@oclif/core'
 
-import {BrokerAuthManager} from './auth/auth-manager.js'
+import {BrokerAuthManager} from './auth/broker-auth-manager.js'
 import {OrgManager} from './auth/org-manager.js'
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<(typeof ScCommand)['baseFlags'] & T['flags']>
