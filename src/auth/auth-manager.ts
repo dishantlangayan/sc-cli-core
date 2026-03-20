@@ -3,7 +3,7 @@ import {homedir} from 'node:os'
 import {join} from 'node:path'
 
 import {ScConnection} from '../util/sc-connection.js'
-import {BrokerAuthEncryption} from './auth-encryption.js'
+import {AuthEncryption} from './auth-encryption.js'
 import {
   AuthType,
   type BrokerAuth,
@@ -170,8 +170,8 @@ export class BrokerAuthManager {
         await this.loadStorage(combinedKey)
       } else {
         // Create new storage with new salt
-        const salt = BrokerAuthEncryption.generateSalt()
-        this.encryptionKey = await BrokerAuthEncryption.deriveKey(combinedKey, salt)
+        const salt = AuthEncryption.generateSalt()
+        this.encryptionKey = await AuthEncryption.deriveKey(combinedKey, salt)
         this.storage = {
           brokers: [],
           version: '1.0.0',
@@ -284,10 +284,10 @@ export class BrokerAuthManager {
 
       // Derive key from combined key and stored salt
       const salt = Buffer.from(encryptedData.salt, 'base64')
-      this.encryptionKey = await BrokerAuthEncryption.deriveKey(combinedKey, salt)
+      this.encryptionKey = await AuthEncryption.deriveKey(combinedKey, salt)
 
       // Decrypt storage
-      this.storage = await BrokerAuthEncryption.decrypt(encryptedData, this.encryptionKey)
+      this.storage = await AuthEncryption.decrypt(encryptedData, this.encryptionKey)
     } catch (error) {
       if (error instanceof BrokerAuthError) {
         throw error
@@ -310,12 +310,12 @@ export class BrokerAuthManager {
       await mkdir(this.configDir, {mode: 0o700, recursive: true})
 
       // Encrypt data
-      const encrypted = await BrokerAuthEncryption.encrypt(this.storage!, this.encryptionKey!)
+      const encrypted = await AuthEncryption.encrypt(this.storage!, this.encryptionKey!)
 
       // Re-derive key with new salt for next save
       const combinedKey = `${this.masterKey}:${this.machineId}`
       const newSalt = Buffer.from(encrypted.salt, 'base64')
-      this.encryptionKey = await BrokerAuthEncryption.deriveKey(combinedKey, newSalt)
+      this.encryptionKey = await AuthEncryption.deriveKey(combinedKey, newSalt)
 
       // Write to temp file first (atomic write)
       const jsonData = JSON.stringify(encrypted, null, 2)

@@ -6,7 +6,7 @@ import type {EncryptedData} from './auth-types.js'
 
 import {DefaultBaseUrl, EnvironmentVariable, envVars} from '../config/env-vars.js'
 import {ScConnection} from '../util/sc-connection.js'
-import {BrokerAuthEncryption} from './auth-encryption.js'
+import {AuthEncryption} from './auth-encryption.js'
 import {KeychainService} from './keychain.js'
 import {type OrgConfig, OrgError, OrgErrorCode, type OrgStorage} from './org-types.js'
 
@@ -183,8 +183,8 @@ export class OrgManager {
         await this.loadStorage(combinedKey)
       } else {
         // Create new storage with new salt
-        const salt = BrokerAuthEncryption.generateSalt()
-        this.encryptionKey = await BrokerAuthEncryption.deriveKey(combinedKey, salt)
+        const salt = AuthEncryption.generateSalt()
+        this.encryptionKey = await AuthEncryption.deriveKey(combinedKey, salt)
         this.storage = {
           orgs: [],
           version: '1.0.0',
@@ -337,10 +337,10 @@ export class OrgManager {
 
       // Derive key from combined key and stored salt
       const salt = Buffer.from(encryptedData.salt, 'base64')
-      this.encryptionKey = await BrokerAuthEncryption.deriveKey(combinedKey, salt)
+      this.encryptionKey = await AuthEncryption.deriveKey(combinedKey, salt)
 
       // Decrypt storage
-      this.storage = await BrokerAuthEncryption.decrypt<OrgStorage>(encryptedData, this.encryptionKey)
+      this.storage = await AuthEncryption.decrypt<OrgStorage>(encryptedData, this.encryptionKey)
     } catch (error) {
       if (error instanceof OrgError) {
         throw error
@@ -378,11 +378,11 @@ export class OrgManager {
 
       // Generate new salt and derive key for THIS save
       const combinedKey = `${this.masterKey}:${this.machineId}`
-      const newSalt = BrokerAuthEncryption.generateSalt()
-      const newKey = await BrokerAuthEncryption.deriveKey(combinedKey, newSalt)
+      const newSalt = AuthEncryption.generateSalt()
+      const newKey = await AuthEncryption.deriveKey(combinedKey, newSalt)
 
       // Encrypt data with the new key
-      const encrypted = await BrokerAuthEncryption.encrypt<OrgStorage>(this.storage!, newKey)
+      const encrypted = await AuthEncryption.encrypt<OrgStorage>(this.storage!, newKey)
 
       // Update the salt in encrypted data to match the salt we used for key derivation
       encrypted.salt = newSalt.toString('base64')

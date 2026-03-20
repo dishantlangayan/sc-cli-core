@@ -3,7 +3,7 @@
  * Provides encrypted storage for broker and organization credentials
  */
 
-export {BrokerAuthEncryption} from './auth-encryption.js'
+export {AuthEncryption} from './auth-encryption.js'
 export {BrokerAuthManager} from './auth-manager.js'
 export {
   AuthType,

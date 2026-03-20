@@ -1,15 +1,16 @@
 import {createCipheriv, createDecipheriv, pbkdf2, randomBytes} from 'node:crypto'
 import {promisify} from 'node:util'
 
-import {BrokerAuthError, BrokerAuthErrorCode, type BrokerAuthStorage, type EncryptedData} from './auth-types.js'
+import type {EncryptedData} from './auth-types.js'
 
 const pbkdf2Async = promisify(pbkdf2)
 
 /**
- * Encryption utility for broker authentication storage
+ * Generic encryption utility for authentication storage
  * Uses AES-256-GCM for authenticated encryption
+ * Can be used by both OrgManager and BrokerAuthManager
  */
-export class BrokerAuthEncryption {
+export class AuthEncryption {
   private static readonly ALGORITHM = 'aes-256-gcm'
   private static readonly DIGEST = 'sha256'
   private static readonly ITERATIONS = 100_000 // OWASP recommended minimum for PBKDF2
@@ -24,7 +25,7 @@ export class BrokerAuthEncryption {
    * @param key - Decryption key
    * @returns Decrypted storage
    */
-  public static async decrypt<T = BrokerAuthStorage>(encryptedData: EncryptedData, key: Buffer): Promise<T> {
+  public static async decrypt<T>(encryptedData: EncryptedData, key: Buffer): Promise<T> {
     try {
       // Parse metadata and buffers
       const iv = Buffer.from(encryptedData.iv, 'base64')
@@ -43,11 +44,11 @@ export class BrokerAuthEncryption {
 
       return storage
     } catch (error) {
-      throw new BrokerAuthError(
-        'Failed to decrypt broker storage. The password may be incorrect or the file may be corrupted.',
-        BrokerAuthErrorCode.DECRYPTION_FAILED,
-        error as Error,
+      const err = new Error(
+        'Failed to decrypt storage. The password may be incorrect or the file may be corrupted.',
       )
+      err.cause = error as Error
+      throw err
     }
   }
 
@@ -60,20 +61,18 @@ export class BrokerAuthEncryption {
   public static async deriveKey(password: string, salt: Buffer): Promise<Buffer> {
     try {
       if (!password || password.length === 0) {
-        throw new BrokerAuthError('Password cannot be empty', BrokerAuthErrorCode.INVALID_PASSWORD)
+        throw new Error('Password cannot be empty')
       }
 
       return await pbkdf2Async(password, salt, this.ITERATIONS, this.KEY_LENGTH, this.DIGEST)
     } catch (error) {
-      if (error instanceof BrokerAuthError) {
+      if (error instanceof Error && error.message === 'Password cannot be empty') {
         throw error
       }
 
-      throw new BrokerAuthError(
-        'Failed to derive encryption key',
-        BrokerAuthErrorCode.ENCRYPTION_FAILED,
-        error as Error,
-      )
+      const err = new Error('Failed to derive encryption key')
+      err.cause = error as Error
+      throw err
     }
   }
 
@@ -83,7 +82,7 @@ export class BrokerAuthEncryption {
    * @param key - Encryption key
    * @returns Encrypted data with metadata
    */
-  public static async encrypt<T = BrokerAuthStorage>(data: T, key: Buffer): Promise<EncryptedData> {
+  public static async encrypt<T>(data: T, key: Buffer): Promise<EncryptedData> {
     try {
       // Generate random IV
       const iv = randomBytes(this.IV_LENGTH)
@@ -115,11 +114,9 @@ export class BrokerAuthEncryption {
         salt: salt.toString('base64'),
       }
     } catch (error) {
-      throw new BrokerAuthError(
-        'Failed to encrypt broker storage',
-        BrokerAuthErrorCode.ENCRYPTION_FAILED,
-        error as Error,
-      )
+      const err = new Error('Failed to encrypt storage')
+      err.cause = error as Error
+      throw err
     }
   }
 
