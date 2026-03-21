@@ -69,6 +69,11 @@ export class BrokerAuthManager {
       )
     }
 
+    // If this broker is being set as default, unset any existing default
+    if (broker.isDefault) {
+      this.unsetAllDefaults()
+    }
+
     // Add broker
     this.storage!.brokers.push(broker)
 
@@ -140,6 +145,17 @@ export class BrokerAuthManager {
     this.ensureInitialized()
 
     const broker = this.storage!.brokers.find((b) => b.name === name)
+    return broker ?? null
+  }
+
+  /**
+   * Get the default broker
+   * @returns Default broker or null if no default is set
+   */
+  public async getDefaultBroker(): Promise<BrokerAuth | null> {
+    this.ensureInitialized()
+
+    const broker = this.storage!.brokers.find((b) => b.isDefault === true)
     return broker ?? null
   }
 
@@ -220,6 +236,28 @@ export class BrokerAuthManager {
   }
 
   /**
+   * Set a broker as the default
+   * @param name - Broker name to set as default
+   */
+  public async setDefaultBroker(name: string): Promise<void> {
+    this.ensureInitialized()
+
+    const index = this.storage!.brokers.findIndex((b) => b.name === name)
+    if (index === -1) {
+      throw new BrokerAuthError(`Broker '${name}' not found`, BrokerAuthErrorCode.BROKER_NOT_FOUND)
+    }
+
+    // Unset all existing defaults
+    this.unsetAllDefaults()
+
+    // Set this broker as default
+    this.storage!.brokers[index].isDefault = true
+
+    // Save to file
+    await this.saveStorage()
+  }
+
+  /**
    * Update existing broker configuration
    * @param name - Broker name to update
    * @param updates - Partial updates to apply
@@ -230,6 +268,11 @@ export class BrokerAuthManager {
     const index = this.storage!.brokers.findIndex((b) => b.name === name)
     if (index === -1) {
       throw new BrokerAuthError(`Broker '${name}' not found`, BrokerAuthErrorCode.BROKER_NOT_FOUND)
+    }
+
+    // If setting this broker as default, unset any existing default
+    if (updates.isDefault === true) {
+      this.unsetAllDefaults()
     }
 
     // Merge updates
@@ -309,13 +352,19 @@ export class BrokerAuthManager {
       // Ensure directory exists
       await mkdir(this.configDir, {mode: 0o700, recursive: true})
 
-      // Encrypt data
-      const encrypted = await AuthEncryption.encrypt(this.storage!, this.encryptionKey!)
-
-      // Re-derive key with new salt for next save
+      // Generate new salt and derive key for THIS save
       const combinedKey = `${this.masterKey}:${this.machineId}`
-      const newSalt = Buffer.from(encrypted.salt, 'base64')
-      this.encryptionKey = await AuthEncryption.deriveKey(combinedKey, newSalt)
+      const newSalt = AuthEncryption.generateSalt()
+      const newKey = await AuthEncryption.deriveKey(combinedKey, newSalt)
+
+      // Encrypt data with the new key
+      const encrypted = await AuthEncryption.encrypt(this.storage!, newKey)
+
+      // Update the salt in encrypted data to match the salt we used for key derivation
+      encrypted.salt = newSalt.toString('base64')
+
+      // Store the new key for next operation
+      this.encryptionKey = newKey
 
       // Write to temp file first (atomic write)
       const jsonData = JSON.stringify(encrypted, null, 2)
@@ -342,6 +391,15 @@ export class BrokerAuthManager {
       }
 
       throw new BrokerAuthError('Failed to save broker storage', BrokerAuthErrorCode.FILE_WRITE_ERROR, error as Error)
+    }
+  }
+
+  /**
+   * Unset the default flag on all brokers
+   */
+  private unsetAllDefaults(): void {
+    for (const broker of this.storage!.brokers) {
+      broker.isDefault = false
     }
   }
 

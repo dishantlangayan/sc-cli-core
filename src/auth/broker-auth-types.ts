@@ -18,6 +18,7 @@ export enum AuthType {
 export interface BrokerAuth {
   accessToken: string
   authType: AuthType
+  isDefault?: boolean
   name: string
   sempEndpoint: string
   sempPort: number
