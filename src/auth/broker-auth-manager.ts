@@ -349,6 +349,20 @@ export class BrokerAuthManager {
         throw new BrokerAuthError('Auth manager not initialized', BrokerAuthErrorCode.NOT_INITIALIZED)
       }
 
+      // If storage is empty, delete the file instead of saving
+      if (this.storage!.brokers.length === 0) {
+        try {
+          await unlink(this.configFile)
+        } catch (error) {
+          // Ignore if file doesn't exist (ENOENT)
+          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw error
+          }
+        }
+
+        return
+      }
+
       // Ensure directory exists
       await mkdir(this.configDir, {mode: 0o700, recursive: true})
 
