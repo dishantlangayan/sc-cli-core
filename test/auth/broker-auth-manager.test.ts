@@ -105,6 +105,14 @@ describe('BrokerAuthManager', () => {
       expect(broker).to.have.property('accessToken')
       expect(broker).to.have.property('authType')
     })
+
+    it('should support optional msgVpnName field', () => {
+      const brokerWithVpn = createMockOAuthBroker('test', undefined, 'my-vpn')
+      expect(brokerWithVpn).to.have.property('msgVpnName', 'my-vpn')
+
+      const brokerWithoutVpn = createMockOAuthBroker('test')
+      expect(brokerWithoutVpn).to.not.have.property('msgVpnName')
+    })
   })
 
   describe('createConnection', () => {
@@ -114,6 +122,32 @@ describe('BrokerAuthManager', () => {
 
     it('should throw error for non-existent broker', async () => {
       await expect(manager.createConnection('non-existent')).to.be.rejectedWith(BrokerAuthError).and.eventually.have.property('code', BrokerAuthErrorCode.BROKER_NOT_FOUND)
+    })
+  })
+
+  describe('optional fields', () => {
+    beforeEach(async () => {
+      await manager.initialize()
+    })
+
+    it('should persist and retrieve msgVpnName field', async () => {
+      const broker = createMockOAuthBroker('test-broker', undefined, 'test-vpn')
+
+      await manager.addBroker(broker)
+
+      const retrieved = await manager.getBroker('test-broker')
+      expect(retrieved).to.not.be.null
+      expect(retrieved?.msgVpnName).to.equal('test-vpn')
+    })
+
+    it('should handle brokers without msgVpnName', async () => {
+      const broker = createMockOAuthBroker('test-broker')
+
+      await manager.addBroker(broker)
+
+      const retrieved = await manager.getBroker('test-broker')
+      expect(retrieved).to.not.be.null
+      expect(retrieved).to.not.have.property('msgVpnName')
     })
   })
 

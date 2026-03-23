@@ -12,6 +12,7 @@ export enum AuthType {
  * @property {string} accessToken - For OAuth: access token string. For Basic: base64-encoded credentials
  * @property {AuthType} authType - Type of authentication (BASIC or OAUTH)
  * @property {boolean} isSolaceCloud - Indicates if this is a Solace Cloud broker
+ * @property {string} msgVpnName - Message VPN name
  * @property {string} name - Human-readable name/alias for the broker
  * @property {string} sempEndpoint - SEMP endpoint URL (must start with http:// or https://)
  * @property {number} sempPort - SEMP port number (1-65535)
@@ -21,6 +22,7 @@ export interface BrokerAuth {
   authType: AuthType
   isDefault?: boolean
   isSolaceCloud?: boolean
+  msgVpnName?: string
   name: string
   sempEndpoint: string
   sempPort: number

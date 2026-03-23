@@ -24,13 +24,15 @@ export function createMockOrg(orgId: string, alias?: string, baseUrl?: string, a
  * Create mock OAuth broker for testing
  * @param name - Broker name
  * @param isSolaceCloud - Optional: Whether this is a Solace Cloud broker
+ * @param msgVpnName - Optional: Message VPN name
  * @returns Mock OAuth broker configuration
  */
-export function createMockOAuthBroker(name: string, isSolaceCloud?: boolean): BrokerAuth {
+export function createMockOAuthBroker(name: string, isSolaceCloud?: boolean, msgVpnName?: string): BrokerAuth {
   return {
     accessToken: `access-token-${name}`,
     authType: AuthType.OAUTH,
     ...(isSolaceCloud !== undefined && {isSolaceCloud}),
+    ...(msgVpnName !== undefined && {msgVpnName}),
     name,
     sempEndpoint: `https://${name}.example.com`,
     sempPort: 943,
@@ -41,13 +43,15 @@ export function createMockOAuthBroker(name: string, isSolaceCloud?: boolean): Br
  * Create mock Basic auth broker for testing
  * @param name - Broker name
  * @param isSolaceCloud - Optional: Whether this is a Solace Cloud broker
+ * @param msgVpnName - Optional: Message VPN name
  * @returns Mock Basic auth broker configuration
  */
-export function createMockBasicBroker(name: string, isSolaceCloud?: boolean): BrokerAuth {
+export function createMockBasicBroker(name: string, isSolaceCloud?: boolean, msgVpnName?: string): BrokerAuth {
   return {
     accessToken: Buffer.from(`${name}:password`).toString('base64'),
     authType: AuthType.BASIC,
     ...(isSolaceCloud !== undefined && {isSolaceCloud}),
+    ...(msgVpnName !== undefined && {msgVpnName}),
     name,
     sempEndpoint: `https://${name}.example.com`,
     sempPort: 8080,
