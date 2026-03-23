@@ -11,6 +11,7 @@ describe('AuthEncryption', () => {
       {
         accessToken: 'test-access-token',
         authType: AuthType.OAUTH,
+        isSolaceCloud: true,
         name: 'test-broker',
         sempEndpoint: 'https://test.example.com',
         sempPort: 943,
@@ -187,6 +188,7 @@ describe('AuthEncryption', () => {
           {
             accessToken: 'oauth-token',
             authType: AuthType.OAUTH,
+            isSolaceCloud: true,
             name: 'broker1',
             sempEndpoint: 'https://broker1.example.com',
             sempPort: 943,
@@ -194,6 +196,7 @@ describe('AuthEncryption', () => {
           {
             accessToken: Buffer.from('admin:admin').toString('base64'),
             authType: AuthType.BASIC,
+            isSolaceCloud: false,
             name: 'broker2',
             sempEndpoint: 'https://broker2.example.com',
             sempPort: 8080,
