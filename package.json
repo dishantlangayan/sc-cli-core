@@ -23,6 +23,7 @@
     "./lib",
     "./lib/**/*.ts"
   ],
+  "repository": "dishantlangayan/sc-cli-core",
   "scripts": {
     "build": "shx rm -rf lib && tsc -b",
     "lint": "eslint",
