@@ -1,4 +1,4 @@
-import {table} from 'table'
+import {createStream, table} from 'table'
 
 /**
  * Formats a camel case style `string` into a title case.
@@ -54,4 +54,21 @@ export function renderKeyValueTable<T>(data: T[][], columnConfig?: Record<number
   }
   const tableStr = table(data, tableConfig)
   return tableStr
+}
+
+/**
+ * Creates a stream table that allows appending rows dynamically.
+ * @param columnCount The number of columns in the table
+ * @param columnConfig Optional column configuration
+ * @returns A stream object with a write method to append rows
+ */
+export function createStreamTable(columnCount: number, columnConfig?: Record<number, ColumnConfig>) {
+  const tableConfig = {
+    columnCount,
+    columnDefault: {
+      width: 20,
+    },
+    columns: columnConfig,
+  }
+  return createStream(tableConfig)
 }
