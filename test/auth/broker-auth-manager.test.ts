@@ -12,7 +12,7 @@ import {MockKeychainService} from './mock-keychain.js'
 describe('BrokerAuthManager', () => {
   let manager: BrokerAuthManager
   let mockKeychainService: MockKeychainService
-  const configFile = join(homedir(), '.sc', 'brokers.json')
+  const configFile = join(homedir(), '.solace', 'sc', 'cli', 'brokers.json')
 
   beforeEach(() => {
     // Create mock keychain service

@@ -13,7 +13,7 @@ import {MockKeychainService} from './mock-keychain.js'
 describe('OrgManager', () => {
   let manager: OrgManager
   let mockKeychainService: MockKeychainService
-  const configFile = join(homedir(), '.sc', 'orgs.json')
+  const configFile = join(homedir(), '.solace', 'sc', 'cli', 'orgs.json')
 
   beforeEach(() => {
     // Create mock keychain service

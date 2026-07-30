@@ -29,7 +29,7 @@ export class OrgManager {
 
   private constructor(keychainService?: KeychainService) {
     const homeDirectory = homedir()
-    this.configDir = join(homeDirectory, '.sc')
+    this.configDir = join(homeDirectory, '.solace', 'sc', 'cli')
     this.configFile = join(this.configDir, 'orgs.json')
     this.keychainService = keychainService ?? new KeychainService()
   }

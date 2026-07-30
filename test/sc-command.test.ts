@@ -26,8 +26,8 @@ class TestCommand extends ScCommand<typeof TestCommand> {
 }
 
 describe('ScCommand', () => {
-  const brokersConfigFile = join(homedir(), '.sc', 'brokers.json')
-  const orgsConfigFile = join(homedir(), '.sc', 'orgs.json')
+  const brokersConfigFile = join(homedir(), '.solace', 'sc', 'cli', 'brokers.json')
+  const orgsConfigFile = join(homedir(), '.solace', 'sc', 'cli', 'orgs.json')
   let mockKeychain: MockKeychainService
 
   beforeEach(() => {

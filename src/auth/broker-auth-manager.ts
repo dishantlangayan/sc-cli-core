@@ -33,7 +33,7 @@ export class BrokerAuthManager {
 
   private constructor(keychainService?: KeychainService) {
     const homeDirectory = homedir()
-    this.configDir = join(homeDirectory, '.sc')
+    this.configDir = join(homeDirectory, '.solace', 'sc', 'cli')
     this.configFile = join(this.configDir, 'brokers.json')
     this.keychainService = keychainService ?? new KeychainService()
   }

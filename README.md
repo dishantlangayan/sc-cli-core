@@ -21,7 +21,7 @@ The ScCommand abstract class extends [@oclif/core's Command class](https://githu
 The ScConnection class provide abstraction functions for Solace Cloud API REST calls. It handles the access token and base URL for each REST call, avoiding the need to set these on each Command.
 
 ## OrgManager
-The OrgManager class provides utility functions to store and retrieve Solace Cloud authentication information from user's home directory: `~/.sc/` or `%USERPROFILE%\sc\`. The implementation uses AES-256-GCM for authenticated encryption and provides machine-bound encryption that combines OS-level security (keychain) with machine-specific identifiers, making credentials non-transferable between machines.
+The OrgManager class provides utility functions to store and retrieve Solace Cloud authentication information from user's home directory: `~/.solace/sc/cli/` or `%USERPROFILE%\.solace\sc\cli\`. The implementation uses AES-256-GCM for authenticated encryption and provides machine-bound encryption that combines OS-level security (keychain) with machine-specific identifiers, making credentials non-transferable between machines.
 
 Supports changing of the Solace Cloud REST API base url using the environment variable `SC_BASE_URL` and API version using `SC_API_VERSION`.
 
