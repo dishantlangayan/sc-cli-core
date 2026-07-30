@@ -11,6 +11,9 @@
     "sc"
   ],
   "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "exports": {
     "./ScCommand.js": "./lib/ScCommand.js",
     "./ScConnection.js": "./lib/util/ScConnection.js",
