@@ -31,7 +31,7 @@
     "build": "shx rm -rf lib && tsc -b",
     "lint": "eslint",
     "posttest": "npm run lint",
-    "test": "NODE_OPTIONS=--loader=ts-node/esm mocha --require ts-node/register --extensions ts --node-env=test \"test/**/*.test.ts\""
+    "test": "NODE_OPTIONS=--loader=ts-node/esm mocha --require ts-node/register --extension ts --node-env=test \"test/**/*.test.ts\""
   },
   "devDependencies": {
     "@eslint/compat": "^1",
@@ -48,7 +48,7 @@
     "eslint-config-oclif": "^6.0.137",
     "eslint-config-prettier": "^10",
     "jiti": "^2.6.1",
-    "mocha": "^11.3.0",
+    "mocha": "^12.0.2",
     "oclif": "^4.22.73",
     "shx": "^0.4.0",
     "sinon": "^21.0.1",
