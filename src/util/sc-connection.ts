@@ -36,6 +36,8 @@ export class ScConnection {
     // Build authorization header based on authType
     const authHeader = authType === 'basic' ? `Basic ${accessToken}` : `Bearer ${accessToken}`
 
+    // Use the default export's create() so tests can stub it (named ESM exports can't be stubbed)
+    // eslint-disable-next-line import/no-named-as-default-member
     this.axiosInstance = axios.create({
       baseURL: this.endpointUrl,
       headers: {
